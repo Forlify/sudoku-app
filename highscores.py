@@ -7,11 +7,11 @@ class HighScores:
     def add_score(self, score):
         if len(self.scores) == self.scores_number:
             self.scores.append(score)
-            sorted(self.scores)
+            self.scores.sort()
             self.scores = self.scores[:-1]
         else:
             self.scores.append(score)
-            sorted(self.scores)
+            self.scores.sort()
     def show_scores(self):
         string_result = "Your high scores: \n"
         for index,score in enumerate(self.scores):
