@@ -62,15 +62,24 @@ class SudokuBoard:
         else:
             messagebox.showinfo(":(", "Not ok.")
 
-    def reset_board(self, scale36, scale18, scale2, bigger_font):
-        self.start_time = time()
-        self.sudoku.reset_sudoku()
+    def fill_board(self):
         for x in range(9):
             for y in range(9):
                 value = self.sudoku.sudoku_numbers[x][y]
                 string_value = value if value else " "
                 self.sudoku_board.itemconfig(
                     self.numbers[x][y][1], text=string_value)
+
+    def reset_board(self):
+        self.start_time = time()
+        self.sudoku.reset_sudoku()
+        self.fill_board()
+
+    def change_board(self, new_sudoku_numbers):
+        self.start_time = time()
+        self.sudoku = Sudoku(new_sudoku_numbers)
+        self.fill_board()
+
 
     def get_scores(self):
         self.scores.show_scores()

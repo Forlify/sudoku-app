@@ -1,8 +1,9 @@
 from tkinter import *
+from tkinter import filedialog
 from tkinter.font import Font
 from sudoku_board import SudokuBoard
 
-# TODO: import - choose source and get it from your memory (message box with 2 buttons)
+# TODO: improve import (file format + better window + change font color)
 
 class State:
 
@@ -42,11 +43,27 @@ class State:
         scale2 = self.set_width(1 / 2)
         self.sudoku_board.set_initial_sudoku_board(scale36, scale18, scale2, self.bigger_font)
 
+    def change_sudoku(self, new_sudoku_numbers):
+        self.sudoku_board.change_board(new_sudoku_numbers)
+
     def reset_sudoku_board(self):
-        scale36 = self.set_width(1 / 36)
-        scale18 = self.set_width(1 / 18)
-        scale2 = self.set_width(1 / 2)
-        self.sudoku_board.reset_board(scale36, scale18, scale2, self.bigger_font)
+        self.sudoku_board.reset_board()
+
+    def import_sudoku(self):
+        import_window = Toplevel()
+        import_window.title('Import source:')
+        message = "Choose import source:"
+        Label(import_window, text=message).pack()
+        Button(import_window, text='Camera').pack()
+        Button(import_window, text='File', command = lambda: self.import_sudoku_from_file()).pack()
+
+    def import_sudoku_from_file(self):
+        source_file = filedialog.askopenfilename(initialdir="/", title="Select File",
+                                   filetypes=(("text", ".txt"), ("all files", "*.*")))
+        with open(source_file) as text_file:
+            sudoku_numbers = [list(map(int, line.split())) for line in text_file]
+        self.change_sudoku(sudoku_numbers)
+
 
     def set_width(self, scale):
         return int(self.window_size_width * scale)
@@ -82,7 +99,7 @@ class State:
         self.main_buttons.append(
             Button(self.main_buttons_frame, text="RESET", command=lambda: self.reset_sudoku_board(), font=self.normal_font))
         self.main_buttons.append(Button(self.main_buttons_frame, text="HIGH SCORES", command=lambda: self.sudoku_board.get_scores(), font=self.normal_font))
-        self.main_buttons.append(Button(self.main_buttons_frame, text="IMPORT", font=self.normal_font))
+        self.main_buttons.append(Button(self.main_buttons_frame, text="IMPORT", command = lambda: self.import_sudoku(), font=self.normal_font))
 
     def set_sudoku_number(self, event, number):
         print(self.selected_row, self.sudoku_board.sudoku.changeable_numbers[self.selected_row][self.selected_column])
