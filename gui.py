@@ -1,55 +1,69 @@
 from tkinter import *
+from tkinter import filedialog
 from tkinter.font import Font
+from sudoku_board import SudokuBoard
 
-
-# configuration ####################################
-
+# TODO: improve import (file format + better window + change font color)
 
 class State:
 
-    def __init__(self):
+    def __init__(self, initial_sudoku_numbers):
         self.app = Tk()
-
         self.selected_row = None
         self.selected_column = None
-
         self.window_size_width = 1500
         self.window_size_height = 1000
         self.font_size = int(self.window_size_height / 25)
-
-        self.initial_sudoku_numbers = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
-                                       [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                                       [0, 9, 8, 0, 0, 0, 0, 6, 0],
-                                       [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                                       [4, 0, 0, 8, 0, 3, 0, 0, 1],
-                                       [7, 0, 0, 0, 2, 0, 0, 0, 6],
-                                       [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                                       [0, 0, 0, 4, 1, 9, 0, 0, 5],
-                                       [0, 0, 0, 0, 8, 0, 0, 7, 9]]
-        self.sudoku_numbers = [[5, 3, 0, 0, 7, 0, 0, 0, 0],
-                               [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                               [0, 9, 8, 0, 0, 0, 0, 6, 0],
-                               [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                               [4, 0, 0, 8, 0, 3, 0, 0, 1],
-                               [7, 0, 0, 0, 2, 0, 0, 0, 6],
-                               [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                               [0, 0, 0, 4, 1, 9, 0, 0, 5],
-                               [0, 0, 0, 0, 8, 0, 0, 7, 9]]
-
-        self.changeable_numbers = []
-        self.numbers = []
+        self.field_color = "#f0f1f5"
+        self.normal_font = Font(family="Open Sans", size=self.font_size)
+        self.bigger_font = Font(family="Open Sans", size=self.set_font(3 / 2))
+        self.sudoku_board = SudokuBoard(self, initial_sudoku_numbers)
         self.number_buttons = []
         self.help_buttons = []
         self.main_buttons = []
-        self.horizontal_lines = []
-        self.vertical_lines = []
-
         self.number_buttons_frame = Frame(self.app, width=self.set_width(1 / 10), height=self.set_height(1 / 2))
         self.help_buttons_frame = Frame(self.app, width=self.set_width(1 / 10), height=self.set_height(1 / 2))
         self.main_buttons_frame = Frame(self.app, width=self.set_width(1 / 5), height=self.window_size_height)
         self.info_frame = Frame(self.app, width=self.set_width(1 / 5), height=self.window_size_height)
-        self.sudoku_board = Canvas(self.app, width=self.set_width(1 / 2), height=self.set_height(0.75),
-                                   bd=0, highlightbackground="black", highlightthickness=5)
+
+    def initalize_app(self):
+        self.app.title('Sudoku solver!')
+        self.app.iconbitmap('sudoku.ico')
+        self.app.geometry(str(self.window_size_width) + "x" + str(self.window_size_height))
+        self.sudoku_board.sudoku_board.bind("<Button-1>", self.select_field)
+        self.set_initial_sudoku_board()
+        self.set_number_buttons()
+        self.set_help_buttons()
+        self.set_main_buttons()
+        self.place()
+
+    def set_initial_sudoku_board(self):
+        scale36 = self.set_width(1 / 36)
+        scale18 = self.set_width(1 / 18)
+        scale2 = self.set_width(1 / 2)
+        self.sudoku_board.set_initial_sudoku_board(scale36, scale18, scale2, self.bigger_font)
+
+    def change_sudoku(self, new_sudoku_numbers):
+        self.sudoku_board.change_board(new_sudoku_numbers)
+
+    def reset_sudoku_board(self):
+        self.sudoku_board.reset_board()
+
+    def import_sudoku(self):
+        import_window = Toplevel()
+        import_window.title('Import source:')
+        message = "Choose import source:"
+        Label(import_window, text=message).pack()
+        Button(import_window, text='Camera').pack()
+        Button(import_window, text='File', command = lambda: self.import_sudoku_from_file()).pack()
+
+    def import_sudoku_from_file(self):
+        source_file = filedialog.askopenfilename(initialdir="/", title="Select File",
+                                   filetypes=(("text", ".txt"), ("all files", "*.*")))
+        with open(source_file) as text_file:
+            sudoku_numbers = [list(map(int, line.split())) for line in text_file]
+        self.change_sudoku(sudoku_numbers)
+
 
     def set_width(self, scale):
         return int(self.window_size_width * scale)
@@ -60,104 +74,55 @@ class State:
     def set_font(self, scale):
         return int(self.font_size * scale)
 
-    def set_changeable_numbers(self):
-        for row in self.sudoku_numbers:
-            row_changeable_numbers = []
-
-            for number in row:
-                row_changeable_numbers.append(number == 0)
-
-            self.changeable_numbers.append(row_changeable_numbers)
-
-    def set_initial_sudoku_board(self):
-        scale36 = self.set_width(1 / 36)
-        scale18 = self.set_width(1 / 18)
-        scale2 = self.set_width(1 / 2)
-
-        for row, line in enumerate(self.initial_sudoku_numbers):
-            numbers_in_row = []
-            for column, number in enumerate(line):
-                string_number = "  " if number == 0 else str(number)
-                string_color = "#636e72" if number == 0 else "#2d3436"
-
-                background = self.sudoku_board.create_rectangle(column * scale18, row * scale18,
-                                                                column * scale18 + scale18, row * scale18 + scale18,
-                                                                fill="white", outline="white")
-
-                text = self.sudoku_board.create_text(column * scale18 + scale36,
-                                                     row * scale18 + scale36,
-                                                     text=string_number, fill=string_color,
-                                                     font=Font(family="Open Sans", size=self.set_font(3 / 2)))
-
-                numbers_in_row.append([background, text])
-
-            self.numbers.append(numbers_in_row)
-
-        for index in range(1, 9):
-            self.vertical_lines.append(self.sudoku_board.create_line(index * scale18, 0,
-                                                                     index * scale18, scale2,
-                                                                     fill="black",
-                                                                     width=(5 if index % 3 == 0 else 2)))
-
-        for index in range(1, 9):
-            self.horizontal_lines.append(self.sudoku_board.create_line(0, index * scale18,
-                                                                       scale2, index * scale18,
-                                                                       fill="black",
-                                                                       width=(5 if index % 3 == 0 else 2)))
+    def actualize_font(self):
+        self.normal_font = Font(family="Open Sans", size=self.font_size)
+        self.bigger_font = Font(family="Open Sans", size=self.set_font(3 / 2))
 
     def set_number_buttons(self):
         for index in range(10):
             self.number_buttons.append(Button(self.number_buttons_frame, text="NONE" if index == 0 else index,
-                                              font=Font(family="Open Sans", size=self.font_size)))
+                                              font=self.normal_font))
             self.number_buttons[index].bind("<Button-1>", lambda event, num=index: self.set_sudoku_number(event, num))
             self.number_buttons[index].pack(side=LEFT)
 
     def set_help_buttons(self):
-        self.help_buttons.append(Button(self.help_buttons_frame, text="HINT",
-                                        font=Font(family="Open Sans", size=self.font_size)))
-
-        self.help_buttons.append(Button(self.help_buttons_frame, text="CHECK",
-                                        font=Font(family="Open Sans", size=self.font_size)))
-
-        self.help_buttons.append(Button(self.help_buttons_frame, text="SOMETHING",
-                                        font=Font(family="Open Sans", size=self.font_size)))
+        self.help_buttons.append(
+            Button(self.help_buttons_frame, text="HINT", command=lambda: self.sudoku_board.get_hint(),
+                   font=self.normal_font))
+        self.help_buttons.append(
+            Button(self.help_buttons_frame, text="CHECK", command=lambda: self.sudoku_board.check(), font=self.normal_font))
+        self.help_buttons.append(Button(self.help_buttons_frame, text="FIELD",font=self.normal_font))
 
     def set_main_buttons(self):
-        self.main_buttons.append(Button(self.main_buttons_frame, text="QUIT", command=self.app.destroy,
-                                        font=Font(family="Open Sans", size=self.font_size)))
-
-        self.main_buttons.append(Button(self.main_buttons_frame, text="IMPORT",
-                                        font=Font(family="Open Sans", size=self.font_size)))
-
-        self.main_buttons.append(Button(self.main_buttons_frame, text="RESET",
-                                        font=Font(family="Open Sans", size=self.font_size)))
-
-        self.main_buttons.append(Button(self.main_buttons_frame, text="HIGH SCORES",
-                                        font=Font(family="Open Sans", size=self.font_size)))
+        self.main_buttons.append(
+            Button(self.main_buttons_frame, text="QUIT", command=self.app.destroy, font=self.normal_font))
+        self.main_buttons.append(
+            Button(self.main_buttons_frame, text="RESET", command=lambda: self.reset_sudoku_board(), font=self.normal_font))
+        self.main_buttons.append(Button(self.main_buttons_frame, text="HIGH SCORES", command=lambda: self.sudoku_board.get_scores(), font=self.normal_font))
+        self.main_buttons.append(Button(self.main_buttons_frame, text="IMPORT", command = lambda: self.import_sudoku(), font=self.normal_font))
 
     def set_sudoku_number(self, event, number):
-        print(self.selected_row,self.changeable_numbers[self.selected_row][self.selected_column])
-        if self.selected_row is not None and self.changeable_numbers[self.selected_row][self.selected_column]:
+        print(self.selected_row, self.sudoku_board.sudoku.changeable_numbers[self.selected_row][self.selected_column])
+        if self.selected_row is not None and self.sudoku_board.sudoku.changeable_numbers[self.selected_row][self.selected_column]:
             string_number = "  " if number == 0 else str(number)
             print(string_number)
 
-            self.sudoku_board.itemconfig(self.numbers[self.selected_row][self.selected_column][1], text=string_number)
-            self.sudoku_numbers[self.selected_row][self.selected_column] = number
+            self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[self.selected_row][self.selected_column][1], text=string_number)
+            self.sudoku_board.sudoku.change_value(self.selected_row, self.selected_column, number)
 
     def select_field(self, event):
         column = int(event.x / self.set_width(1 / 18))
         row = int(event.y / self.set_width(1 / 18))
 
-
-        if not self.changeable_numbers[row][column]: return
+        if not self.sudoku_board.sudoku.changeable_numbers[row][column]: return
 
         if self.selected_row is not None:
-            self.sudoku_board.itemconfig(self.numbers[self.selected_row][self.selected_column][0], fill="white")
+            self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[self.selected_row][self.selected_column][0], fill="white")
 
         self.selected_row = row
         self.selected_column = column
 
-        self.sudoku_board.itemconfig(self.numbers[row][column][0], fill="#f0f1f5")
+        self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[row][column][0], fill=self.field_color)
 
     def place(self):
         scale2w = self.set_width(1 / 2)
@@ -171,12 +136,12 @@ class State:
         self.font_size = self.set_height(1 / 25)
 
         self.number_buttons_frame.config(width=scale10w, height=scale2h)
-        self.help_buttons_frame.config(width=scale10w, height=scale2h)
+        self.help_buttons_frame.config(width=scale5w*3, height=scale2h)
         self.main_buttons_frame.config(width=scale5w, height=self.window_size_height)
         self.info_frame.config(width=scale5w, height=self.window_size_height)
-        self.sudoku_board.config(width=scale2w, height=self.set_height(0.75))
+        self.sudoku_board.sudoku_board.config(width=scale2w, height=self.set_height(0.75))
 
-        self.sudoku_board.place(x=scale4w, y=0)
+        self.sudoku_board.sudoku_board.place(x=scale4w, y=0)
         self.number_buttons_frame.place(x=scale4w, y=self.set_height(0.8))
         self.help_buttons_frame.place(x=scale4w, y=self.set_height(0.9))
         self.info_frame.place(x=self.set_width(0.8), y=0)
@@ -184,76 +149,58 @@ class State:
 
         for index, button in enumerate(self.main_buttons):
             button.place(x=0, y=index * self.set_height(0.065), width=scale5w)
-            button.config(font=Font(family="Open Sans", size=self.font_size))
+            #button.place(x=0, y=index * self.set_height(0.085), width=scale5w)
+            button.config(font=self.normal_font)
 
         for index, button in enumerate(self.help_buttons):
-            button.place(x=index * self.set_height(1 / 6), y=0, width=scale5w)
-            button.config(font=Font(family="Open Sans", size=self.font_size))
+            button.place(x=index * self.set_width(1 / 6), y=0, width=scale5w)
+            button.config(font=self.normal_font)
 
         for button in self.number_buttons:
-            button.config(font=Font(family="Open Sans", size=self.font_size))
+            button.config(font=self.normal_font)
 
-        for index, line in enumerate(self.vertical_lines):
-            self.sudoku_board.coords(line, (index + 1) * scale18w, 0, (index + 1) * scale18w, scale2w)
+        for index, line in enumerate(self.sudoku_board.vertical_lines):
+            self.sudoku_board.sudoku_board.coords(line, (index + 1) * scale18w, 0, (index + 1) * scale18w, scale2w)
 
-        for index, line in enumerate(self.horizontal_lines):
-            self.sudoku_board.coords(line, 0, (index + 1) * scale18w, scale2w, (index + 1) * scale18w)
+        for index, line in enumerate(self.sudoku_board.horizontal_lines):
+            self.sudoku_board.sudoku_board.coords(line, 0, (index + 1) * scale18w, scale2w, (index + 1) * scale18w)
 
-        for row, line in enumerate(self.numbers):
+        for row, line in enumerate(self.sudoku_board.numbers):
             for column, field in enumerate(line):
-                self.sudoku_board.coords(field[0], column * scale18w, row * scale18w,
-                                         column * scale18w + scale18w, row * scale18w + scale18w)
-                self.sudoku_board.coords(field[1], column * scale18w + scale36w, row * scale18w + scale36w)
-                self.sudoku_board.itemconfig(self.numbers[row][column][1],
-                                             font=Font(family="Open Sans", size=self.set_font(3 / 2)))
-
-
-state = State()
-
-
-# main #############################################
+                self.sudoku_board.sudoku_board.coords(field[0], column * scale18w, row * scale18w,
+                                                      column * scale18w + scale18w, row * scale18w + scale18w)
+                self.sudoku_board.sudoku_board.coords(field[1], column * scale18w + scale36w, row * scale18w + scale36w)
+                self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[row][column][1],
+                                                          font=self.bigger_font)
 
 
 def main():
-    state.app.title('Sudoku solver!')
-    state.app.geometry(str(state.window_size_width) + "x" + str(state.window_size_height))
-
-    state.set_changeable_numbers()
-
-    state.sudoku_board.bind("<Button-1>", state.select_field)
-    state.set_initial_sudoku_board()
-
-    state.set_number_buttons()
-    state.set_help_buttons()
-    state.set_main_buttons()
-
-    state.place()
+    initial_sudoku_numbers = [[None, 8, None, None, 1, 3, 4, None, None],
+                              [4, 2, 3, 6, 8, None, None, None, None],
+                              [None, 7, 1, None, 5, 4, None, 8, 3],
+                              [1, 9, None, None, None, 8, 7, None, None],
+                              [None, 4, 7, None, None, 2, 5, None, 8],
+                              [None, 5, None, None, None, 9, None, 3, None],
+                              [2, None, 9, 3, None, 5, None, 7, None],
+                              [5, None, None, 7, 2, None, None, None, 9],
+                              [7, 3, None, None, None, None, 2, None, 6]]
+    state = State(initial_sudoku_numbers)
+    state.initalize_app()
 
     while True:
         state.app.update()
         if state.window_size_width != state.app.winfo_width() or state.window_size_height != state.window_size_height:
             if state.app.winfo_width() * 2 / 3 > state.app.winfo_height():
-                state.window_size_width = int(state.app.winfo_height()*3/2)
+                state.window_size_width = int(state.app.winfo_height() * 3 / 2)
                 state.window_size_height = state.app.winfo_height()
+
             else:
                 state.window_size_width = state.app.winfo_width()
-                state.window_size_height = int(state.app.winfo_width() * 2/3)
-
+                state.window_size_height = int(state.app.winfo_width() * 2 / 3)
+            state.actualize_font()
             state.app.geometry(str(state.window_size_width) + "x" + str(state.window_size_height))
             state.place()
-
 
 if __name__ == "__main__":
     main()
 
-# solved ############################################
-
-# [[5, 3, 4, 6, 7, 8, 9, 1, 2],
-#  [6, 7, 2, 1, 9, 5, 3, 4, 8],
-#  [1, 9, 8, 3, 4, 2, 5, 6, 7],
-#  [8, 5, 9, 7, 6, 1, 4, 2, 3],
-#  [4, 2, 6, 8, 5, 3, 7, 9, 1],
-#  [7, 1, 3, 9, 2, 4, 8, 5, 6],
-#  [9, 6, 1, 5, 3, 7, 2, 8, 4],
-#  [2, 8, 7, 4, 1, 9, 6, 3, 5],
-#  [3, 4, 5, 2, 8, 6, 1, 7, 9]] changable_numebrs = [[False for x in range(9)] for y in range(9)]
