@@ -3,6 +3,7 @@ from tkinter import filedialog
 from tkinter.font import Font
 from sudoku_board import SudokuBoard
 
+
 # TODO: improve import (file format + better window + change font color)
 
 class State:
@@ -13,8 +14,8 @@ class State:
         self.selected_column = None
         self.window_size_width = 1500
         self.window_size_height = 1000
-        self.font_size = int(self.window_size_height / 25)
         self.field_color = "#f0f1f5"
+        self.font_size = int(self.window_size_height / 25)
         self.normal_font = Font(family="Open Sans", size=self.font_size)
         self.bigger_font = Font(family="Open Sans", size=self.set_font(3 / 2))
         self.sudoku_board = SudokuBoard(self, initial_sudoku_numbers)
@@ -55,15 +56,14 @@ class State:
         message = "Choose import source:"
         Label(import_window, text=message).pack()
         Button(import_window, text='Camera').pack()
-        Button(import_window, text='File', command = lambda: self.import_sudoku_from_file()).pack()
+        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file()).pack()
 
     def import_sudoku_from_file(self):
         source_file = filedialog.askopenfilename(initialdir="/", title="Select File",
-                                   filetypes=(("text", ".txt"), ("all files", "*.*")))
+                                                 filetypes=(("text", ".txt"), ("all files", "*.*")))
         with open(source_file) as text_file:
             sudoku_numbers = [list(map(int, line.split())) for line in text_file]
         self.change_sudoku(sudoku_numbers)
-
 
     def set_width(self, scale):
         return int(self.window_size_width * scale)
@@ -75,6 +75,7 @@ class State:
         return int(self.font_size * scale)
 
     def actualize_font(self):
+        self.font_size = self.set_height(1 / 25)
         self.normal_font = Font(family="Open Sans", size=self.font_size)
         self.bigger_font = Font(family="Open Sans", size=self.set_font(3 / 2))
 
@@ -90,24 +91,31 @@ class State:
             Button(self.help_buttons_frame, text="HINT", command=lambda: self.sudoku_board.get_hint(),
                    font=self.normal_font))
         self.help_buttons.append(
-            Button(self.help_buttons_frame, text="CHECK", command=lambda: self.sudoku_board.check(), font=self.normal_font))
-        self.help_buttons.append(Button(self.help_buttons_frame, text="FIELD",font=self.normal_font))
+            Button(self.help_buttons_frame, text="CHECK", command=lambda: self.sudoku_board.check(),
+                   font=self.normal_font))
+        self.help_buttons.append(Button(self.help_buttons_frame, text="FIELD", font=self.normal_font))
 
     def set_main_buttons(self):
         self.main_buttons.append(
             Button(self.main_buttons_frame, text="QUIT", command=self.app.destroy, font=self.normal_font))
         self.main_buttons.append(
-            Button(self.main_buttons_frame, text="RESET", command=lambda: self.reset_sudoku_board(), font=self.normal_font))
-        self.main_buttons.append(Button(self.main_buttons_frame, text="HIGH SCORES", command=lambda: self.sudoku_board.get_scores(), font=self.normal_font))
-        self.main_buttons.append(Button(self.main_buttons_frame, text="IMPORT", command = lambda: self.import_sudoku(), font=self.normal_font))
+            Button(self.main_buttons_frame, text="RESET", command=lambda: self.reset_sudoku_board(),
+                   font=self.normal_font))
+        self.main_buttons.append(
+            Button(self.main_buttons_frame, text="HIGH SCORES", command=lambda: self.sudoku_board.get_scores(),
+                   font=self.normal_font))
+        self.main_buttons.append(
+            Button(self.main_buttons_frame, text="IMPORT", command=lambda: self.import_sudoku(), font=self.normal_font))
 
     def set_sudoku_number(self, event, number):
         print(self.selected_row, self.sudoku_board.sudoku.changeable_numbers[self.selected_row][self.selected_column])
-        if self.selected_row is not None and self.sudoku_board.sudoku.changeable_numbers[self.selected_row][self.selected_column]:
+        if self.selected_row is not None and self.sudoku_board.sudoku.changeable_numbers[self.selected_row][
+            self.selected_column]:
             string_number = "  " if number == 0 else str(number)
             print(string_number)
 
-            self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[self.selected_row][self.selected_column][1], text=string_number)
+            self.sudoku_board.sudoku_board.itemconfig(
+                self.sudoku_board.numbers[self.selected_row][self.selected_column][1], text=string_number)
             self.sudoku_board.sudoku.change_value(self.selected_row, self.selected_column, number)
 
     def select_field(self, event):
@@ -117,7 +125,8 @@ class State:
         if not self.sudoku_board.sudoku.changeable_numbers[row][column]: return
 
         if self.selected_row is not None:
-            self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[self.selected_row][self.selected_column][0], fill="white")
+            self.sudoku_board.sudoku_board.itemconfig(
+                self.sudoku_board.numbers[self.selected_row][self.selected_column][0], fill="white")
 
         self.selected_row = row
         self.selected_column = column
@@ -133,10 +142,8 @@ class State:
         scale36w = self.set_width(1 / 36)
         scale2h = self.set_height(1 / 2)
 
-        self.font_size = self.set_height(1 / 25)
-
         self.number_buttons_frame.config(width=scale10w, height=scale2h)
-        self.help_buttons_frame.config(width=scale5w*3, height=scale2h)
+        self.help_buttons_frame.config(width=scale5w * 3, height=scale2h)
         self.main_buttons_frame.config(width=scale5w, height=self.window_size_height)
         self.info_frame.config(width=scale5w, height=self.window_size_height)
         self.sudoku_board.sudoku_board.config(width=scale2w, height=self.set_height(0.75))
@@ -149,7 +156,6 @@ class State:
 
         for index, button in enumerate(self.main_buttons):
             button.place(x=0, y=index * self.set_height(0.065), width=scale5w)
-            #button.place(x=0, y=index * self.set_height(0.085), width=scale5w)
             button.config(font=self.normal_font)
 
         for index, button in enumerate(self.help_buttons):
@@ -193,14 +199,13 @@ def main():
             if state.app.winfo_width() * 2 / 3 > state.app.winfo_height():
                 state.window_size_width = int(state.app.winfo_height() * 3 / 2)
                 state.window_size_height = state.app.winfo_height()
-
             else:
                 state.window_size_width = state.app.winfo_width()
                 state.window_size_height = int(state.app.winfo_width() * 2 / 3)
-            state.actualize_font()
             state.app.geometry(str(state.window_size_width) + "x" + str(state.window_size_height))
+            state.actualize_font()
             state.place()
+
 
 if __name__ == "__main__":
     main()
-
