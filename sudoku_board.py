@@ -45,10 +45,10 @@ class SudokuBoard:
     def get_hint(self):
         hint = self.sudoku.get_hint()
         if hint:
-            i, j, value = hint
-            self.sudoku.change_value(i, j, value)
+            x, y, value = hint
+            self.sudoku.change_value(x, y, value)
             self.sudoku_board.itemconfig(
-                self.numbers[i][j][1], text=str(value))
+                self.numbers[x][y][1], text=str(value))
 
     def check(self):
         check = self.sudoku.check_sudoku()
@@ -65,12 +65,12 @@ class SudokuBoard:
     def reset_board(self, scale36, scale18, scale2, bigger_font):
         self.start_time = time()
         self.sudoku.reset_sudoku()
-        for i in range(9):
-            for j in range(9):
-                value = self.sudoku.sudoku_numbers[i][j]
+        for x in range(9):
+            for y in range(9):
+                value = self.sudoku.sudoku_numbers[x][y]
                 string_value = value if value else " "
                 self.sudoku_board.itemconfig(
-                    self.numbers[i][j][1], text=string_value)
+                    self.numbers[x][y][1], text=string_value)
 
     def get_scores(self):
         self.scores.show_scores()
