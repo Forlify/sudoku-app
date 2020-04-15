@@ -1,19 +1,20 @@
-from sudoku import Sudoku
+from src.sudoku import Sudoku
 from time import time
 from tkinter import Canvas, messagebox
-from highscores import HighScores
+from src.highscores import HighScores
+import src.utils.utils as utils
 
 
 class SudokuBoard:
     def __init__(self, state, initial_sudoku):
-        self.sudoku_board = Canvas(state.app, width=state.set_width(1 / 2), height=state.set_height(0.75), bd=0,
+        self.sudoku_board = Canvas(state.app, width=utils.set_width(1 / 2), height=utils.set_height(0.75), bd=0,
                                    highlightbackground="black", highlightthickness=5)
+        self.sudoku_board.bind("<Button-1>", state.select_field)
+
         self.horizontal_lines = []
         self.vertical_lines = []
         self.sudoku = Sudoku(initial_sudoku)
         self.numbers = []
-        self.zero_font_color = "#636e72"
-        self.number_font_color = "#2d3436"
         self.start_time = time()
         self.scores = HighScores()
 
@@ -22,7 +23,7 @@ class SudokuBoard:
             numbers_in_row = []
             for column, number in enumerate(line):
                 string_number = str(number) if number in self.sudoku.possible_values else " "
-                string_color = self.number_font_color if number in self.sudoku.possible_values else self.zero_font_color
+                string_color = utils.black if number in self.sudoku.possible_values else utils.dark_gray
                 background = self.sudoku_board.create_rectangle(column * scale18, row * scale18,
                                                                 column * scale18 + scale18, row * scale18 + scale18,
                                                                 fill="white", outline="white")
@@ -39,7 +40,7 @@ class SudokuBoard:
                 self.sudoku_board.create_line(index * scale18, 0, index * scale18, scale2, fill="black",
                                               width=(5 if index % 3 == 0 else 2)))
             self.horizontal_lines.append(
-                self.sudoku_board.create_line(0, index * scale18, scale2, index * scale18, fill="black",
+                self.sudoku_board.create_line(0, index * scale18, 730, index * scale18, fill="black",
                                               width=(5 if index % 3 == 0 else 2)))
 
     def get_hint(self):
@@ -47,8 +48,7 @@ class SudokuBoard:
         if hint:
             x, y, value = hint
             self.sudoku.change_value(x, y, value)
-            self.sudoku_board.itemconfig(
-                self.numbers[x][y][1], text=str(value))
+            self.sudoku_board.itemconfig(self.numbers[x][y][1], text=str(value))
 
     def check(self):
         check = self.sudoku.check_sudoku()
@@ -79,7 +79,6 @@ class SudokuBoard:
         self.start_time = time()
         self.sudoku = Sudoku(new_sudoku_numbers)
         self.fill_board()
-
 
     def get_scores(self):
         self.scores.show_scores()

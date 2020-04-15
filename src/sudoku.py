@@ -6,7 +6,8 @@ class Sudoku:
     def __init__(self, initial_board):
         self.sudoku_numbers = deepcopy(initial_board)
         self.possible_values = {1, 2, 3, 4, 5, 6, 7, 8, 9}
-        self.changeable_numbers = [[initial_board[y][x] not in self.possible_values for x in range(9)] for y in range(9)]
+        self.changeable_numbers = [[initial_board[y][x] not in self.possible_values for x in range(9)] for y in
+                                   range(9)]
         self.solved_sudoku_numbers = deepcopy(initial_board)
 
     # We index sudoku squares by the least coordinate: for example first square (left upper corner) consists of
@@ -23,9 +24,10 @@ class Sudoku:
         for x in range(pos_x, 9):
             for y in range(pos_y, 9):
                 if self.solved_sudoku_numbers[x][y] not in self.possible_values:
-                    return x,y
+                    return x, y
         # We try to find it wherever and if we can't we return None point:
-        return next(((x, y) for x in range(9) for y in range(9) if self.solved_sudoku_numbers[x][y] not in self.possible_values), (-1, -1))
+        return next(((x, y) for x in range(9) for y in range(9) if
+                     self.solved_sudoku_numbers[x][y] not in self.possible_values), (-1, -1))
 
     def check_move(self, i, j, value):
         check_row = all([self.solved_sudoku_numbers[i][x] != value for x in range(9)])
