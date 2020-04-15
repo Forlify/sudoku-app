@@ -1,12 +1,16 @@
 from src.sudoku import Sudoku
 from time import time
+from tkinter import *
 from tkinter import Canvas, messagebox
+from tkinter import filedialog
 from src.highscores import HighScores
 import src.utils.utils as utils
+from src.photo_camera_read import read_image, read_camera
 
 
 class SudokuBoard:
     def __init__(self, state, initial_sudoku):
+        self.state = state
         self.sudoku_board = Canvas(state.app, width=utils.set_width(1 / 2), height=utils.set_height(0.75), bd=0,
                                    highlightbackground="black", highlightthickness=5)
         self.sudoku_board.bind("<Button-1>", state.select_field)
@@ -37,11 +41,39 @@ class SudokuBoard:
 
         for index in range(1, 9):
             self.vertical_lines.append(
-                self.sudoku_board.create_line(index * scale18, 0, index * scale18, scale2, fill="black",
-                                              width=(5 if index % 3 == 0 else 2)))
+                self.sudoku_board.create_line(0, 0, 0, 0, fill="black", width=(5 if index % 3 == 0 else 2)))
             self.horizontal_lines.append(
-                self.sudoku_board.create_line(0, index * scale18, 730, index * scale18, fill="black",
-                                              width=(5 if index % 3 == 0 else 2)))
+                self.sudoku_board.create_line(0, 0, 0, 0, fill="black", width=(5 if index % 3 == 0 else 2)))
+
+    def change_sudoku(self, new_sudoku_numbers):
+        self.state.sudoku_board.change_board(new_sudoku_numbers)
+
+    def import_sudoku_from_file(self):
+        source_file = filedialog.askopenfilename(initialdir="./sudoku-files", title="Select File",
+                                                 filetypes=(("text", ".txt"), ("all files", "*.*")))
+        print(source_file)
+        with open(source_file) as text_file:
+            sudoku_numbers = [list(map(int, line.split())) for line in text_file]
+        self.change_sudoku(sudoku_numbers)
+
+    def import_sudoku_from_image(self):
+        source_file = filedialog.askopenfilename(initialdir="./img", title="Select File",
+                                                 filetypes=(("text", ".png"), ("all files", "*.*")))
+        sudoku_numbers = read_image(source_file)
+        self.change_sudoku(sudoku_numbers)
+
+    def import_sudoku_from_camera(self):
+        sudoku_numbers = read_camera()
+        self.change_sudoku(sudoku_numbers)
+
+    def import_sudoku(self):
+        import_window = Toplevel()
+        import_window.title('Import source:')
+        message = "Choose import source:"
+        Label(import_window, text=message).pack()
+        Button(import_window, text='Camera', command=lambda: self.import_sudoku_from_camera()).pack()
+        Button(import_window, text='Photo', command=lambda: self.import_sudoku_from_image()).pack()
+        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file()).pack()
 
     def get_hint(self):
         hint = self.sudoku.get_hint()

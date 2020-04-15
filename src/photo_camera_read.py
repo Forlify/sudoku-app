@@ -5,14 +5,11 @@ import pandas as pd
 
 #####################################################
 
-cap = cv2.VideoCapture(0)
-img_sudoku_grid = cv2.imread("img/sudoku-grid.png")
+scale = 1
+cached_sudoku_boards = 20
 
-height = cap.get(4)
-scale = 640 / height
-
-data = pd.read_csv("train/labels.csv")
-pickle_file = open("train/model_trained.p", "rb")
+data = pd.read_csv("src/train/labels.csv")
+pickle_file = open("src/train/model_trained.p", "rb")
 model = pickle.load(pickle_file)
 
 
@@ -66,6 +63,7 @@ def draw_user_interface(img_user):
     cv2.line(img_user, (70, 570), (570, 570), (0, 0, 0), 2)
     cv2.line(img_user, (570, 570), (570, 70), (0, 0, 0), 2)
     cv2.line(img_user, (570, 70), (70, 70), (0, 0, 0), 2)
+    cv2.putText(img_user, "Press enter to confirm", (130, 60), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
     return img_user
 
@@ -143,11 +141,11 @@ def get_separated_sudoku_numbers(img_sudoku):
     return img_sudoku_processed - img_sudoku_table
 
 
-def get_completed_sudoku(img_sudoku_numbers, sudoku_cut, img_sudoku_result):
+def get_completed_sudoku_photo(img_sudoku_numbers, sudoku_cut):
     thresh, im_bw = cv2.threshold(img_sudoku_numbers, 128, 255, 0)
     contours, hierarchy = cv2.findContours(im_bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-    sudoku_all_numbers = [[None] * 9 for _ in range(9)]
+    sudoku_board = [[None] * 9 for _ in range(9)]
 
     for contour in contours:
         area = cv2.contourArea(contour)
@@ -160,25 +158,102 @@ def get_completed_sudoku(img_sudoku_numbers, sudoku_cut, img_sudoku_result):
             y_index = int(np.floor(y / 100))
             x_index = int(np.floor(x / 100))
 
-            cv2.putText(img_sudoku_result, str(prediction), (x_index * 70 + 20,y_index * 70 + 60),
+            sudoku_board[y_index][x_index] = prediction
+
+    return sudoku_board
+
+
+def get_completed_sudoku_camera(img_sudoku_numbers, sudoku_cut, img_sudoku_result):
+    thresh, im_bw = cv2.threshold(img_sudoku_numbers, 128, 255, 0)
+    contours, hierarchy = cv2.findContours(im_bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    sudoku_board = [[None] * 9 for _ in range(9)]
+
+    for contour in contours:
+        area = cv2.contourArea(contour)
+
+        if area > 500:
+            x, y, w, h = cv2.boundingRect(contour)
+            img_number = sudoku_cut[y:y + h, x:x + w]
+            prediction = recognise(img_number)
+
+            y_index = int(np.floor(y / 100))
+            x_index = int(np.floor(x / 100))
+
+            cv2.putText(img_sudoku_result, str(prediction), (x_index * 70 + 20, y_index * 70 + 60),
                         cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 0), 2, cv2.LINE_AA)
 
-            sudoku_all_numbers[y_index][x_index] = prediction
+            sudoku_board[y_index][x_index] = prediction
 
-    return img_sudoku_result, sudoku_all_numbers
+    return img_sudoku_result, sudoku_board
 
 
 def render_window(img_user, img_sudoku_result):
     cv2.imshow('result', np.hstack((img_user, img_sudoku_result)))
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        print("exit")
+    if cv2.waitKey(1) == 13:
         return False
     return True
 
 
-def main():
+def cache_sudoku_boards(sudoku_boards, sudoku_board):
+    sudoku_boards.append(sudoku_board)
+    if len(sudoku_boards) > cached_sudoku_boards:
+        sudoku_boards.pop(0)
+
+
+def get_result_sudoku_boards(sudoku_boards):
+    result_sudoku_board = [[None] * 9 for _ in range(9)]
+    for row in range(0, 9):
+        for column in range(0, 9):
+            numbers_counter = {}
+            for sudoku_board in sudoku_boards:
+                value = sudoku_board[row][column]
+                numbers_counter[value] = 0
+
+            for sudoku_board in sudoku_boards:
+                value = sudoku_board[row][column]
+                numbers_counter[value] += 1
+
+            result_sudoku_board[row][column] = max(numbers_counter, key=numbers_counter.get)
+
+    return result_sudoku_board
+
+
+def read_image(filepath):
+    img = cv2.imread(filepath)
+    height, width, channels = img.shape
+
+    global scale
+    scale = 640 / height
+
+    img_small = make_image_rectangle(img)
+
+    img_dilate = get_dilated_image(img_small)
+    points = get_contour_points(img_dilate)
+
+    try:
+        points = sort_points(points)
+        img_sudoku = get_transformed_sudoku(img_small, points)
+    except (ValueError, cv2.error):
+        return [[None] * 9 for _ in range(9)]
+
+    img_sudoku_numbers = get_separated_sudoku_numbers(img_sudoku)
+    sudoku_board = get_completed_sudoku_photo(img_sudoku_numbers, img_sudoku)
+
+    return sudoku_board
+
+
+def read_camera():
+    cap = cv2.VideoCapture(0)
+    img_sudoku_grid = cv2.imread("img/sudoku-grid.png")
+
+    global scale
+    scale = 640 / cap.get(4)
+
+    sudoku_boards = []
     loop = True
+
     while loop:
         success, img = cap.read()
 
@@ -196,12 +271,12 @@ def main():
             continue
 
         img_sudoku_numbers = get_separated_sudoku_numbers(img_sudoku)
-        img_sudoku_result, sudoku_all_numbers = get_completed_sudoku(img_sudoku_numbers, img_sudoku, img_sudoku_grid.copy())
-
+        img_sudoku_result, sudoku_board = get_completed_sudoku_camera(img_sudoku_numbers, img_sudoku,
+                                                                      img_sudoku_grid.copy())
+        cache_sudoku_boards(sudoku_boards, sudoku_board)
         loop = render_window(img_user, img_sudoku_result)
 
-
-if __name__ == "__main__":
-    main()
     cap.release()
     cv2.destroyAllWindows()
+
+    return get_result_sudoku_boards(sudoku_boards)

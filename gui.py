@@ -15,7 +15,6 @@ def main():
                               [5, None, None, 7, 2, None, None, None, 9],
                               [7, 3, None, None, None, None, 2, None, 6]]
     state = State(initial_sudoku_numbers)
-    state.initalize_app()
 
     while True:
         state.app.update()
