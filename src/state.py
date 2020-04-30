@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.font import Font
 from src.sudoku_board import SudokuBoard
 import src.utils.utils as utils
+from src.timer import Timer
 
 
 class State:
@@ -25,6 +26,8 @@ class State:
         self.set_help_buttons()
         self.set_main_buttons()
         self.place()
+        self.timer = Timer(self.app)
+
 
     def set_initial_sudoku_board(self):
         scale36 = utils.set_width(1 / 36)
@@ -91,6 +94,7 @@ class State:
         scale2w = utils.set_width(1 / 2)
         scale4w = utils.set_width(1 / 4)
         scale5w = utils.set_width(1 / 5)
+
         scale10w = utils.set_width(1 / 10)
         scale18w = utils.set_width(1 / 18)
         scale36w = utils.set_width(1 / 36)

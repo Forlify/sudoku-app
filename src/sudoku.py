@@ -89,6 +89,8 @@ class Sudoku:
         if self.solve_sudoku():
             free_positions = [(i, j) for i in range(9) for j in range(9) if
                               self.sudoku_numbers[i][j] not in self.possible_values]
+            if not free_positions:
+                return None
             i, j = random.choice(free_positions)
             self.sudoku_numbers[i][j] = self.solved_sudoku_numbers[i][j]
             return i, j, self.solved_sudoku_numbers[i][j]

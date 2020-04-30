@@ -6,6 +6,7 @@ from tkinter import filedialog
 from src.highscores import HighScores
 import src.utils.utils as utils
 from src.photo_camera_read import read_image, read_camera
+from src.timer import Timer
 
 
 class SudokuBoard:
@@ -51,7 +52,6 @@ class SudokuBoard:
     def import_sudoku_from_file(self):
         source_file = filedialog.askopenfilename(initialdir="./sudoku-files", title="Select File",
                                                  filetypes=(("text", ".txt"), ("all files", "*.*")))
-        print(source_file)
         with open(source_file) as text_file:
             sudoku_numbers = [list(map(int, line.split())) for line in text_file]
         self.change_sudoku(sudoku_numbers)
@@ -68,6 +68,8 @@ class SudokuBoard:
 
     def import_sudoku(self):
         import_window = Toplevel()
+        import_window.focus_set()
+        import_window.grab_set()
         import_window.title('Import source:')
         message = "Choose import source:"
         Label(import_window, text=message).pack()
@@ -98,9 +100,10 @@ class SudokuBoard:
         for x in range(9):
             for y in range(9):
                 value = self.sudoku.sudoku_numbers[x][y]
+                string_color = utils.black if value in self.sudoku.possible_values else utils.dark_gray
                 string_value = value if value else " "
                 self.sudoku_board.itemconfig(
-                    self.numbers[x][y][1], text=string_value)
+                    self.numbers[x][y][1], text=string_value, fill=string_color)
 
     def reset_board(self):
         self.start_time = time()
@@ -111,6 +114,8 @@ class SudokuBoard:
         self.start_time = time()
         self.sudoku = Sudoku(new_sudoku_numbers)
         self.fill_board()
+        # Reset timer:
+        self.state.timer = Timer(self.state.app)
 
     def get_scores(self):
         self.scores.show_scores()
