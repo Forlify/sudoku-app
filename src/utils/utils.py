@@ -21,7 +21,7 @@ def set_height(scale):
 def set_font(scale):
     return int(font_size * scale)
 
-start_time = datetime.datetime(100,1,1,23,59,59)
+start_time = datetime.datetime(100,1,1,0,0,0)
 
 def addSecs(tm, secs=1):
     full_date = datetime.datetime(100, 1, 1, tm.hour, tm.minute, tm.second)

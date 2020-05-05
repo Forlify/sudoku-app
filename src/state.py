@@ -19,13 +19,13 @@ class State:
         self.info_frame = Frame(self.app, width=utils.set_width(1 / 5), height=utils.window_height)
 
         self.app.title('Sudoku solver!')
-        self.app.iconbitmap('sudoku.ico')
+        self.app.iconbitmap('img/sudoku.ico')
         self.app.geometry(str(utils.window_width) + "x" + str(utils.window_height))
         self.set_initial_sudoku_board()
         self.set_number_buttons()
         self.set_help_buttons()
         self.set_main_buttons()
-        self.place()
+        self.place(True)
         self.timer = Timer(self.app)
 
 
@@ -54,7 +54,7 @@ class State:
         self.help_buttons.append(
             Button(self.help_buttons_frame, text="CHECK", command=lambda: self.sudoku_board.check(),
                    font=utils.normal_font))
-        self.help_buttons.append(Button(self.help_buttons_frame, text="FIELD", font=utils.normal_font))
+        self.help_buttons.append(Button(self.help_buttons_frame, text="RANDOM", command=lambda: self.sudoku_board.random_sudoku(), font=utils.normal_font))
 
     def set_main_buttons(self):
         self.main_buttons.append(Button(self.main_buttons_frame, text="QUIT",
@@ -90,7 +90,7 @@ class State:
 
         self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[row][column][0], fill=utils.light_gray)
 
-    def place(self):
+    def place(self, first=False):
         scale2w = utils.set_width(1 / 2)
         scale4w = utils.set_width(1 / 4)
         scale5w = utils.set_width(1 / 5)
@@ -136,3 +136,4 @@ class State:
                 self.sudoku_board.sudoku_board.coords(field[1], column * scale18w + scale36w, row * scale18w + scale36w)
                 self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[row][column][1],
                                                           font=utils.bigger_font)
+        if not first: self.timer.update_size()

@@ -22,6 +22,7 @@ class SudokuBoard:
         self.numbers = []
         self.start_time = time()
         self.scores = HighScores()
+        self.solved = False
 
     def set_initial_sudoku_board(self, scale36, scale18, scale2, bigger_font):
         for row, line in enumerate(self.sudoku.sudoku_numbers):
@@ -47,24 +48,35 @@ class SudokuBoard:
                 self.sudoku_board.create_line(0, 0, 0, 0, fill="black", width=(5 if index % 3 == 0 else 2)))
 
     def change_sudoku(self, new_sudoku_numbers):
+        self.solved = False
         self.state.sudoku_board.change_board(new_sudoku_numbers)
 
-    def import_sudoku_from_file(self):
+    def random_sudoku(self):
+        self.sudoku.generate_sudoku()
+        print(self.sudoku.sudoku_numbers)
+        self.change_sudoku(self.sudoku.sudoku_numbers)
+
+
+    def import_sudoku_from_file(self, window):
         source_file = filedialog.askopenfilename(initialdir="./sudoku-files", title="Select File",
                                                  filetypes=(("text", ".txt"), ("all files", "*.*")))
         with open(source_file) as text_file:
             sudoku_numbers = [list(map(int, line.split())) for line in text_file]
         self.change_sudoku(sudoku_numbers)
+        window.destroy()
 
-    def import_sudoku_from_image(self):
+    def import_sudoku_from_image(self, window):
         source_file = filedialog.askopenfilename(initialdir="./img", title="Select File",
                                                  filetypes=(("text", ".png"), ("all files", "*.*")))
         sudoku_numbers = read_image(source_file)
         self.change_sudoku(sudoku_numbers)
+        window.destroy()
 
-    def import_sudoku_from_camera(self):
+
+    def import_sudoku_from_camera(self, window):
         sudoku_numbers = read_camera()
         self.change_sudoku(sudoku_numbers)
+        window.destroy()
 
     def import_sudoku(self):
         import_window = Toplevel()
@@ -73,9 +85,10 @@ class SudokuBoard:
         import_window.title('Import source:')
         message = "Choose import source:"
         Label(import_window, text=message).pack()
-        Button(import_window, text='Camera', command=lambda: self.import_sudoku_from_camera()).pack()
-        Button(import_window, text='Photo', command=lambda: self.import_sudoku_from_image()).pack()
-        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file()).pack()
+        Button(import_window, text='Camera', command=lambda: self.import_sudoku_from_camera(import_window)).pack()
+        Button(import_window, text='Photo', command=lambda: self.import_sudoku_from_image(import_window)).pack()
+        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file(import_window)).pack()
+
 
     def get_hint(self):
         hint = self.sudoku.get_hint()
@@ -85,12 +98,18 @@ class SudokuBoard:
             self.sudoku_board.itemconfig(self.numbers[x][y][1], text=str(value))
 
     def check(self):
+        if self.solved:
+            messagebox.showinfo("Congratulation!", "You've already solved this sudoku!")
+            return
         check = self.sudoku.check_sudoku()
         if check == "all":
             end_time = time()
             score = round(end_time - self.start_time, 1)
-            self.scores.add_score(score)
+            self.state.timer.set_on_off()
             messagebox.showinfo("Congratulation!", "You've completed sudoku in: " + str(score) + " s!")
+            self.solved = True
+            self.scores.add_score(score, self.state)
+
         elif check == "ok":
             messagebox.showinfo(":)", "Keep going, everything is ok right now..")
         else:
@@ -106,16 +125,16 @@ class SudokuBoard:
                     self.numbers[x][y][1], text=string_value, fill=string_color)
 
     def reset_board(self):
-        self.start_time = time()
         self.sudoku.reset_sudoku()
         self.fill_board()
 
     def change_board(self, new_sudoku_numbers):
-        self.start_time = time()
         self.sudoku = Sudoku(new_sudoku_numbers)
         self.fill_board()
         # Reset timer:
-        self.state.timer = Timer(self.state.app)
+        self.start_time = time()
+        self.state.timer.reset()
+        self.state.timer.set_on_off()
 
     def get_scores(self):
         self.scores.show_scores()
