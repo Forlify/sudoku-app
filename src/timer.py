@@ -3,13 +3,13 @@ import src.utils.utils as utils
 
 
 class Timer:
-    def __init__(self, app):
+    def __init__(self, app, frame):
         self.root = app
+        self.frame = frame
         self.running = False
         self.time = utils.start_time.time()
-        self.label = tk.Label(text=self.time, font=utils.normal_font)
-        self.label.pack()
-        self.label.place(relx=0.77, rely=0.1, anchor='sw')
+        self.label = tk.Label(frame, text=self.time, font=utils.normal_font, fg=utils.orange, background=utils.dark_blue)
+        self.label.place(x=utils.set_width(1 / 80), y=utils.set_height(1/80))
         self.update_clock()
 
     def update_clock(self):
@@ -23,6 +23,7 @@ class Timer:
 
     def update_size(self):
         self.label.configure(text=self.time, font=utils.normal_font)
+        self.label.place(x=utils.set_width(1 / 80), y=utils.set_height(1/80))
 
     def reset(self):
         self.time = utils.start_time.time()
