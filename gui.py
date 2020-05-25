@@ -2,20 +2,12 @@ from src.state import State
 import src.utils.utils as utils
 
 
-# TODO: improve import (file format + better window + change font color)
-
 def main():
-    initial_sudoku_numbers = [[None, 8, None, None, 1, 3, 4, None, None],
-                              [4, 2, 3, 6, 8, None, None, None, None],
-                              [None, 7, 1, None, 5, 4, None, 8, 3],
-                              [1, 9, None, None, None, 8, 7, None, None],
-                              [None, 4, 7, None, None, 2, 5, None, 8],
-                              [None, 5, None, None, None, 9, None, 3, None],
-                              [2, None, 9, 3, None, 5, None, 7, None],
-                              [5, None, None, 7, 2, None, None, None, 9],
-                              [7, 3, None, None, None, None, 2, None, 6]]
+    # Start with empty sudoku:
+    initial_sudoku_numbers = [[None] * 9] * 9
     state = State(initial_sudoku_numbers)
 
+    # App responsiveness:
     while True:
         state.app.update()
 

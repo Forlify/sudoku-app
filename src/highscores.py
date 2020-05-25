@@ -1,40 +1,56 @@
+from time import sleep
 from tkinter import messagebox
+from tkinter import *
+from datetime import datetime
+import src.utils.utils as utils
+
+import pickle
+
+from src.highscores_window import HighscoresWindow
 
 
 class HighScores:
     def __init__(self):
-        self.scores_number = 10
+        self.scores_number = 20
         self.scores = self.read_scores()
+        self.name = None
 
-    def add_score(self, score):
+    def add_score(self, score, state):
+        top = Toplevel(background=utils.dark_blue)
+        Label(top, text="Enter your name:", bg=utils.dark_blue, fg=utils.white).pack()
+        text_box = Text(top, height=1, width=10, bg=utils.dark_blue, fg=utils.white)
+        text_box.pack()
+        button_commit = Button(top, height=1, width=10, command=lambda: self.add_name_score(text_box, top, score),
+                               text="Commit", background=utils.light_blue, foreground=utils.white)
+        button_commit.pack()
+
+    def add_name_score(self, text_box, top, score):
+        self.name = text_box.get("1.0", "end-1c")
+        top.destroy()
         self.scores = self.read_scores()
+        date = datetime.date(datetime.now())
+        new_record = [self.name, score, date]
         if len(self.scores) == self.scores_number:
-            self.scores.append(score)
-            self.scores.sort()
+            self.scores.append(new_record)
+            self.scores.sort(key=lambda record: record[1])
             self.scores = self.scores[:-1]
         else:
-            self.scores.append(score)
-            self.scores.sort()
+            self.scores.append(new_record)
+            self.scores.sort(key=lambda record: record[1])
         self.update_scores()
 
     def show_scores(self):
-        string_result = "Your high scores: \n"
-        for index, score in enumerate(self.scores):
-            string_result = string_result + str(index + 1) + ". " + str(score) + " s \n"
-        messagebox.showinfo("Scores: ", string_result)
+        top = Toplevel()
+        HighscoresWindow(top, self.scores)
+
 
     def update_scores(self):
-        with open('score.txt', "w") as write_score:
-            for index, item in enumerate(self.scores):
-                if index == len(self.scores) - 1:
-                    write_score.write(str(item))
-                else:
-                    write_score.write(str(item) + ' ')
-        write_score.close
+        scores_file = open("final_scores", 'wb')
+        pickle.dump(self.scores, scores_file)
+        scores_file.close()
 
     def read_scores(self):
-        with open('score.txt', "r") as read_score:
-            scores = read_score.read()
-            scores = scores.split(' ')
-            scores = list(map(float, scores))
+        scores_file = open("final_scores", 'rb')
+        scores = pickle.load(scores_file)
+        scores_file.close()
         return scores

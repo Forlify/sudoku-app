@@ -1,5 +1,6 @@
 from copy import deepcopy
 import random
+import numpy as np
 
 
 class Sudoku:
@@ -56,8 +57,8 @@ class Sudoku:
             row_values = list(filter(lambda x: x in self.possible_values, row))
             col_values = list(filter(lambda x: x in self.possible_values, column))
             # Tricky one: we check if there are some duplicates:
-            check_row = len(row_values) == len(set(row_values))
-            check_col = len(col_values) == len(set(col_values))
+            check_row = (len(row_values) == len(set(row_values)))
+            check_col = (len(col_values) == len(set(col_values)))
             if not check_row or not check_col:
                 return False
         return True
@@ -95,6 +96,33 @@ class Sudoku:
             self.sudoku_numbers[i][j] = self.solved_sudoku_numbers[i][j]
             return i, j, self.solved_sudoku_numbers[i][j]
         return None
+
+    def generate_sudoku(self, mask_rate=0.6):
+        while True:
+            # Start with empty sudoku:
+            sudoku = np.zeros((9, 9), np.int)
+            possible_values_numpy = np.arange(1, 9 + 1)
+            # First row is a random permutation of [1,2,3,4,5,6,7,8,9]
+            sudoku[0, :] = np.random.choice(possible_values_numpy, 9, replace=False)
+            try:
+                for row in range(1, 9):
+                    for column in range(9):
+                        possible_column_vals = np.setdiff1d(possible_values_numpy, sudoku[:row, column])
+                        possible_row_vals = np.setdiff1d(possible_values_numpy, sudoku[row, :column])
+                        possible_vals = np.intersect1d(possible_column_vals, possible_row_vals)
+                        square_r, square_c = row // 3, column // 3
+                        possible_square_vals = np.setdiff1d(np.arange(0, 9 + 1),
+                                            sudoku[square_r * 3:(square_r + 1) * 3, square_c * 3:(square_c + 1) * 3].ravel())
+                        possible = np.intersect1d(possible_vals, possible_square_vals)
+                        sudoku[row, column] = np.random.choice(possible, size=1)
+                break
+            except ValueError:
+                pass
+        mask_sudoku = sudoku.copy()
+        mask_sudoku[np.random.choice([True, False], size=sudoku.shape, p=[mask_rate, 1 - mask_rate])] = 0
+        self.sudoku_numbers = mask_sudoku.tolist()
+        self.changeable_numbers = [[mask_sudoku[y][x] not in self.possible_values for x in range(9)] for y in
+                                   range(9)]
 
     def reset_sudoku(self):
         self.sudoku_numbers = deepcopy(
