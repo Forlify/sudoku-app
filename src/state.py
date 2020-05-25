@@ -104,7 +104,7 @@ class State:
             string_number = "  " if number == 0 else str(number)
 
             self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[row][column][1], text=string_number)
-            self.sudoku_board.sudoku.change_value(row, column, number)
+            self.sudoku_board.change_value(row, column, number)
 
     def select_field(self, event):
         column = int(event.x / utils.set_width(1 / 18))
@@ -177,5 +177,6 @@ class State:
                 self.sudoku_board.sudoku_board.coords(field[1], column * scale18w + scale36w, row * scale18w + scale36w)
                 self.sudoku_board.sudoku_board.itemconfig(self.sudoku_board.numbers[row][column][1],
                                                           font=utils.bigger_font)
-        if not first: self.timer.update_size()
+        if not first:
+            self.timer.update_size()
 #1.165

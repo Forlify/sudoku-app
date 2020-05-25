@@ -53,7 +53,6 @@ class SudokuBoard:
 
     def random_sudoku(self):
         self.sudoku.generate_sudoku()
-        print(self.sudoku.sudoku_numbers)
         self.change_sudoku(self.sudoku.sudoku_numbers)
 
 
@@ -79,26 +78,19 @@ class SudokuBoard:
         window.destroy()
 
     def import_sudoku(self):
-        import_window = Toplevel()
+        import_window = Toplevel(background=utils.dark_blue)
         import_window.focus_set()
         import_window.grab_set()
         import_window.title('Import source:')
         message = "Choose import source:"
-        Label(import_window, text=message).pack()
-        Button(import_window, text='Camera', command=lambda: self.import_sudoku_from_camera(import_window)).pack()
-        Button(import_window, text='Photo', command=lambda: self.import_sudoku_from_image(import_window)).pack()
-        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file(import_window)).pack()
+        Label(import_window, text=message, fg=utils.white, background=utils.dark_blue).pack()
+        Button(import_window, text='Camera', command=lambda: self.import_sudoku_from_camera(import_window), fg=utils.white, background=utils.light_blue).pack()
+        Button(import_window, text='Photo', command=lambda: self.import_sudoku_from_image(import_window), fg=utils.white, background=utils.light_blue).pack()
+        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file(import_window), fg=utils.white, background=utils.light_blue).pack()
+        Button(import_window, text='Random', command=lambda: self.random_sudoku(), fg=utils.white, background=utils.light_blue).pack()
 
-
-    def get_hint(self):
-        hint = self.sudoku.get_hint()
-        if hint:
-            x, y, value = hint
-            self.sudoku.change_value(x, y, value)
-            self.sudoku_board.itemconfig(self.numbers[x][y][1], text=str(value))
-
-    def check(self):
-        if self.solved:
+    def check(self, on_click=True):
+        if self.solved and on_click:
             messagebox.showinfo("Congratulation!", "You've already solved this sudoku!")
             return
         check = self.sudoku.check_sudoku()
@@ -110,10 +102,18 @@ class SudokuBoard:
             self.solved = True
             self.scores.add_score(score, self.state)
 
-        elif check == "ok":
+        elif check == "ok" and on_click:
             messagebox.showinfo(":)", "Keep going, everything is ok right now..")
-        else:
+        elif on_click:
             messagebox.showinfo(":(", "Not ok.")
+
+    def get_hint(self):
+        hint = self.sudoku.get_hint()
+        if hint:
+            x, y, value = hint
+            self.sudoku.change_value(x, y, value)
+            self.sudoku_board.itemconfig(self.numbers[x][y][1], text=str(value))
+        self.check(on_click=False)
 
     def fill_board(self):
         for x in range(9):
@@ -133,7 +133,12 @@ class SudokuBoard:
         # Reset timer:
         self.start_time = time()
         self.state.timer.reset()
-        self.state.timer.set_on_off()
+        self.state.timer.set_on()
 
     def get_scores(self):
         self.scores.show_scores()
+
+    def change_value(self, row, column, number):
+        self.sudoku.change_value(row, column, number)
+        self.check(on_click=False)
+

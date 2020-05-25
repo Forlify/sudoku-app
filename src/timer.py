@@ -28,5 +28,8 @@ class Timer:
     def reset(self):
         self.time = utils.start_time.time()
 
+    def set_on(self):
+        self.running = True
+
 
 

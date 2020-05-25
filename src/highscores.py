@@ -2,6 +2,7 @@ from time import sleep
 from tkinter import messagebox
 from tkinter import *
 from datetime import datetime
+import src.utils.utils as utils
 
 import pickle
 
@@ -15,12 +16,12 @@ class HighScores:
         self.name = None
 
     def add_score(self, score, state):
-        top = Toplevel()
-        Label(top, text="Enter your name:").pack()
-        text_box = Text(top, height=1, width=10)
+        top = Toplevel(background=utils.dark_blue)
+        Label(top, text="Enter your name:", bg=utils.dark_blue, fg=utils.white).pack()
+        text_box = Text(top, height=1, width=10, bg=utils.dark_blue, fg=utils.white)
         text_box.pack()
         button_commit = Button(top, height=1, width=10, command=lambda: self.add_name_score(text_box, top, score),
-                               text="Commit")
+                               text="Commit", background=utils.light_blue, foreground=utils.white)
         button_commit.pack()
 
     def add_name_score(self, text_box, top, score):
