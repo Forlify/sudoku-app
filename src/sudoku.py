@@ -112,7 +112,8 @@ class Sudoku:
                         possible_vals = np.intersect1d(possible_column_vals, possible_row_vals)
                         square_r, square_c = row // 3, column // 3
                         possible_square_vals = np.setdiff1d(np.arange(0, 9 + 1),
-                                            sudoku[square_r * 3:(square_r + 1) * 3, square_c * 3:(square_c + 1) * 3].ravel())
+                                                            sudoku[square_r * 3:(square_r + 1) * 3,
+                                                            square_c * 3:(square_c + 1) * 3].ravel())
                         possible = np.intersect1d(possible_vals, possible_square_vals)
                         sudoku[row, column] = np.random.choice(possible, size=1)
                 break

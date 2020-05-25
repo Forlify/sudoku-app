@@ -1,12 +1,9 @@
-from time import sleep
-from tkinter import messagebox
 from tkinter import *
 from datetime import datetime
 import src.utils.utils as utils
-
 import pickle
-
 from src.highscores_window import HighscoresWindow
+from PIL import Image, ImageTk
 
 
 class HighScores:
@@ -14,15 +11,18 @@ class HighScores:
         self.scores_number = 20
         self.scores = self.read_scores()
         self.name = None
+        self.commit_button = ImageTk.PhotoImage(Image.open("img/commit-btn.png"))
 
     def add_score(self, score, state):
         top = Toplevel(background=utils.dark_blue)
+        top.geometry("200x120")
         Label(top, text="Enter your name:", bg=utils.dark_blue, fg=utils.white).pack()
-        text_box = Text(top, height=1, width=10, bg=utils.dark_blue, fg=utils.white)
+        text_box = Text(top, height=1, width=10)
         text_box.pack()
-        button_commit = Button(top, height=1, width=10, command=lambda: self.add_name_score(text_box, top, score),
-                               text="Commit", background=utils.light_blue, foreground=utils.white)
-        button_commit.pack()
+
+        label = Label(top, background=utils.dark_blue, image=self.commit_button)
+        label.bind("<Button-1>", lambda e: self.add_name_score(text_box, top, score))
+        label.pack()
 
     def add_name_score(self, text_box, top, score):
         self.name = text_box.get("1.0", "end-1c")
@@ -42,7 +42,6 @@ class HighScores:
     def show_scores(self):
         top = Toplevel()
         HighscoresWindow(top, self.scores)
-
 
     def update_scores(self):
         scores_file = open("final_scores", 'wb')

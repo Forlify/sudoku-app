@@ -6,7 +6,7 @@ from tkinter import filedialog
 from src.highscores import HighScores
 import src.utils.utils as utils
 from src.photo_camera_read import read_image, read_camera
-from src.timer import Timer
+from PIL import Image, ImageTk
 
 
 class SudokuBoard:
@@ -24,12 +24,19 @@ class SudokuBoard:
         self.scores = HighScores()
         self.solved = False
 
+        self.button_images = [
+            ImageTk.PhotoImage(Image.open("img/random-btn.png")),
+            ImageTk.PhotoImage(Image.open("img/file-btn.png")),
+            ImageTk.PhotoImage(Image.open("img/camera-btn.png")),
+            ImageTk.PhotoImage(Image.open("img/photo-btn.png"))
+        ]
+
     def set_initial_sudoku_board(self, scale36, scale18, scale2, bigger_font):
         for row, line in enumerate(self.sudoku.sudoku_numbers):
             numbers_in_row = []
             for column, number in enumerate(line):
                 string_number = str(number) if number in self.sudoku.possible_values else " "
-                string_color = utils.white if number in self.sudoku.possible_values else utils.light_gray
+                string_color = utils.white if number in self.sudoku.possible_values else utils.white
                 background = self.sudoku_board.create_rectangle(column * scale18, row * scale18,
                                                                 column * scale18 + scale18, row * scale18 + scale18,
                                                                 fill=utils.blue, outline=utils.blue)
@@ -51,10 +58,10 @@ class SudokuBoard:
         self.solved = False
         self.state.sudoku_board.change_board(new_sudoku_numbers)
 
-    def random_sudoku(self):
+    def random_sudoku(self, window):
         self.sudoku.generate_sudoku()
         self.change_sudoku(self.sudoku.sudoku_numbers)
-
+        window.destroy()
 
     def import_sudoku_from_file(self, window):
         source_file = filedialog.askopenfilename(initialdir="./sudoku-files", title="Select File",
@@ -71,7 +78,6 @@ class SudokuBoard:
         self.change_sudoku(sudoku_numbers)
         window.destroy()
 
-
     def import_sudoku_from_camera(self, window):
         sudoku_numbers = read_camera()
         self.change_sudoku(sudoku_numbers)
@@ -79,15 +85,28 @@ class SudokuBoard:
 
     def import_sudoku(self):
         import_window = Toplevel(background=utils.dark_blue)
+        import_window.geometry("320x200")
         import_window.focus_set()
         import_window.grab_set()
         import_window.title('Import source:')
         message = "Choose import source:"
         Label(import_window, text=message, fg=utils.white, background=utils.dark_blue).pack()
-        Button(import_window, text='Camera', command=lambda: self.import_sudoku_from_camera(import_window), fg=utils.white, background=utils.light_blue).pack()
-        Button(import_window, text='Photo', command=lambda: self.import_sudoku_from_image(import_window), fg=utils.white, background=utils.light_blue).pack()
-        Button(import_window, text='File', command=lambda: self.import_sudoku_from_file(import_window), fg=utils.white, background=utils.light_blue).pack()
-        Button(import_window, text='Random', command=lambda: self.random_sudoku(), fg=utils.white, background=utils.light_blue).pack()
+
+        label = Label(import_window, background=utils.dark_blue, image=self.button_images[0])
+        label.bind("<Button-1>", lambda e: self.random_sudoku(import_window))
+        label.place(x=20, y=20)
+
+        label = Label(import_window, background=utils.dark_blue, image=self.button_images[1])
+        label.bind("<Button-1>", lambda e: self.import_sudoku_from_file(import_window))
+        label.place(x=165, y=20)
+
+        label = Label(import_window, background=utils.dark_blue, image=self.button_images[2])
+        label.bind("<Button-1>", lambda e: self.import_sudoku_from_camera(import_window))
+        label.place(x=20, y=105)
+
+        label = Label(import_window, background=utils.dark_blue, image=self.button_images[3])
+        label.bind("<Button-1>", lambda e: self.import_sudoku_from_image(import_window))
+        label.place(x=165, y=105)
 
     def check(self, on_click=True):
         if self.solved and on_click:
@@ -119,7 +138,7 @@ class SudokuBoard:
         for x in range(9):
             for y in range(9):
                 value = self.sudoku.sudoku_numbers[x][y]
-                string_color = utils.white if value in self.sudoku.possible_values else utils.light_gray
+                string_color = utils.white if value in self.sudoku.possible_values else utils.white
                 string_value = value if value else " "
                 self.sudoku_board.itemconfig(self.numbers[x][y][1], text=string_value, fill=string_color)
 
@@ -141,4 +160,3 @@ class SudokuBoard:
     def change_value(self, row, column, number):
         self.sudoku.change_value(row, column, number)
         self.check(on_click=False)
-

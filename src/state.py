@@ -135,16 +135,16 @@ class State:
         self.info_frame.config(width=scale5w, height=utils.window_height)
         self.sudoku_board.sudoku_board.config(width=scale2w - 10, height=utils.set_height(0.75) - 10)
 
-        self.sudoku_board.sudoku_board.place(x=scale4w, y=utils.set_height(1/36))
+        self.sudoku_board.sudoku_board.place(x=scale4w, y=utils.set_height(1 / 36))
         self.number_buttons_frame.place(x=scale4w, y=utils.set_height(0.8))
         self.help_buttons_frame.place(x=scale4w, y=utils.set_height(0.9))
         self.info_frame.place(x=utils.set_width(0.8), y=0)
-        self.main_buttons_frame.place(x=utils.set_width(1 / 40), y=utils.set_height(1/36))
+        self.main_buttons_frame.place(x=utils.set_width(1 / 40), y=utils.set_height(1 / 36))
 
         self.help_buttons_img[0] = ImageTk.PhotoImage(self.help_buttons_unscaled[0].resize(
-                                           (int(scale2w * 0.39), utils.set_height(0.08)), Image.ANTIALIAS))
+            (int(scale2w * 0.39), utils.set_height(0.08)), Image.ANTIALIAS))
         self.help_buttons_img[1] = ImageTk.PhotoImage(self.help_buttons_unscaled[1].resize(
-                                           (int(scale2w * 0.59), utils.set_height(0.08)), Image.ANTIALIAS))
+            (int(scale2w * 0.59), utils.set_height(0.08)), Image.ANTIALIAS))
 
         self.help_buttons[0].config(image=self.help_buttons_img[0])
         self.help_buttons[1].config(image=self.help_buttons_img[1])
@@ -160,9 +160,9 @@ class State:
 
         for index, button in enumerate(self.number_buttons):
             self.number_buttons_img[index] = ImageTk.PhotoImage(self.number_buttons_unscaled[index].resize(
-                (int(scale2w/11), utils.set_height(0.08)), Image.ANTIALIAS))
+                (int(scale2w / 11), utils.set_height(0.08)), Image.ANTIALIAS))
             self.number_buttons[index].config(image=self.number_buttons_img[index])
-            button.place(x=index * scale2w/10, y=0)
+            button.place(x=index * scale2w / 10, y=0)
 
         for index, line in enumerate(self.sudoku_board.vertical_lines):
             self.sudoku_board.sudoku_board.coords(line, (index + 1) * scale18w, 0, (index + 1) * scale18w, scale2w)
@@ -179,4 +179,4 @@ class State:
                                                           font=utils.bigger_font)
         if not first:
             self.timer.update_size()
-#1.165
+# 1.165

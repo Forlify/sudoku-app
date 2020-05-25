@@ -11,15 +11,15 @@ class HighscoresWindow(Frame):
         style.configure("Treeview", background=utils.dark_blue, foreground="white")
         style.configure("Treeview.Heading", background=utils.dark_blue, foreground="white")
         style.configure("Treeview.Row", background=utils.dark_blue,
-                         foreground="white")
+                        foreground="white")
         style.configure("Treeview.Cell", background=utils.dark_blue,
-                         foreground="white")
+                        foreground="white")
         style.configure("Treeview.Item", background=utils.dark_blue,
-                         foreground="white")
+                        foreground="white")
         Frame.__init__(self, parent)
         self.CreateUI()
         self.LoadTable(scores)
-        self.grid(sticky = (N,S,W,E))
+        self.grid(sticky=(N, S, W, E))
         parent.grid_rowconfigure(0, weight=1)
         parent.grid_columnconfigure(0, weight=1)
 
@@ -34,14 +34,11 @@ class HighscoresWindow(Frame):
         tv.column('score', anchor='center', width=100)
         tv.heading('date', text='Date')
         tv.column('date', anchor='center', width=100)
-        tv.grid(sticky = (N,S,W,E))
+        tv.grid(sticky=(N, S, W, E))
         self.treeview = tv
-        self.grid_rowconfigure(0, weight = 1)
-        self.grid_columnconfigure(0, weight = 1)
-
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
     def LoadTable(self, scores):
         for index, [name, time, date] in enumerate(scores):
-            self.treeview.insert('', 'end', text=str(index + 1), values=(name,
-                                time, date), tags=('ttk', ))
-
+            self.treeview.insert('', 'end', text=str(index + 1), values=(name, time, date), tags=('ttk',))
