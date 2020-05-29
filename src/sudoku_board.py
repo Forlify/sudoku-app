@@ -138,7 +138,7 @@ class SudokuBoard:
         for x in range(9):
             for y in range(9):
                 value = self.sudoku.sudoku_numbers[x][y]
-                string_color = utils.white if value in self.sudoku.possible_values else utils.white
+                string_color = utils.orange if value in self.sudoku.possible_values else utils.white
                 string_value = value if value else " "
                 self.sudoku_board.itemconfig(self.numbers[x][y][1], text=string_value, fill=string_color)
 
